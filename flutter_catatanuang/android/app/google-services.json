@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "390975764047",
+    "project_id": "project-pencatat-keuangan",
+    "storage_bucket": "project-pencatat-keuangan.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:390975764047:android:36b1f8988de23efdb01c3a",
+        "android_client_info": {
+          "package_name": "com.example.flutter_catatanuang"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRrs-khGe8gHaQUucJLOmsW1piqm_00BE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
