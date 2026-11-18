@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_catatanuang/widgets/custom_input.dart';
-import 'home_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import '../utils/app_color.dart';
+import '../widgets/custom_input.dart';
+import '../widgets/custom_snackbar.dart';
+import 'root_nav_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,35 +14,47 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final nameC = TextEditingController();
-  final emailC = TextEditingController();
-  final passC = TextEditingController();
+  final nameController = TextEditingController();
+  final kelasController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
   bool isLoading = false;
+  bool hidePassword = true;
 
-  void register() async {
-    if (nameC.text.isEmpty || emailC.text.isEmpty || passC.text.isEmpty) return;
+  // Proses bikin akun baru sekaligus nyimpen biodata user ke Firestore
+  Future<void> registerUser() async {
+    if (nameController.text.isEmpty ||
+        kelasController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty) {
+      CustomSnackBar.showError(context, "Semua form wajib diisi");
+      return;
+    }
+
     setState(() => isLoading = true);
     try {
-      UserCredential res = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailC.text.trim(),
-        password: passC.text,
+      // 1. Daftarkan email & password ke Firebase Auth
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text,
       );
 
-      await FirebaseFirestore.instance.collection('users').doc(res.user!.uid).set({
-        'name': nameC.text,
-        'email': emailC.text.trim(),
-        'created_at': DateTime.now().toIso8601String(),
+      // 2. Ambil ID unik user, lalu simpan nama & kelasnya ke database Firestore
+      final uid = credential.user!.uid;
+      await FirebaseFirestore.instance.collection("users").doc(uid).set({
+        "user_id": uid,
+        "name": nameController.text.trim(),
+        "email": emailController.text.trim(),
+        "kelas": kelasController.text.trim(),
+        "created_at": DateTime.now().toIso8601String(),
+        "foto": "https://ui-avatars.com/api/?name=${nameController.text.trim()}&background=3B82F6&color=fff",
       });
 
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false,
-        );
-      }
+      if (!mounted) return;
+      CustomSnackBar.showSuccess(context, "Berhasil mendaftar!");
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const RootNavScreen()));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal: $e")));
+      CustomSnackBar.showError(context, "Gagal mendaftar: $e");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -49,21 +63,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Buat Akun Imut"), backgroundColor: Colors.transparent, elevation: 0),
+      backgroundColor: Colors.white,
+      appBar: AppBar(backgroundColor: Colors.white, elevation: 0, iconTheme: const IconThemeData(color: AppColor.primary)),
       body: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         children: [
-          CustomInput(controller: nameC, label: "Nama Panggilan", hint: "Contoh: Petal"),
-          CustomInput(controller: emailC, label: "Email", hint: "email@gmail.com"),
-          CustomInput(controller: passC, label: "Password", hint: "******", obscureText: true),
-          const SizedBox(height: 20),
+          const Center(
+            child: Text("Sign up", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColor.primary)),
+          ),
+          const SizedBox(height: 24),
+          CustomInput(controller: nameController, label: "Nama Lengkap", hint: "Masukkan nama lengkap"),
+          CustomInput(controller: kelasController, label: "Kelas", hint: "Contoh: XI RPL 4"),
+          CustomInput(
+            controller: emailController,
+            label: "Email Address",
+            hint: "Masukkan email",
+            keyboardType: TextInputType.emailAddress,
+          ),
+          CustomInput(
+            controller: passwordController,
+            label: "Password",
+            hint: "Buat password",
+            obscureText: hidePassword,
+            suffixIcon: IconButton(
+              icon: Icon(hidePassword ? Icons.visibility_off : Icons.visibility, color: AppColor.secondarySoft),
+              onPressed: () => setState(() => hidePassword = !hidePassword),
+            ),
+          ),
+          const SizedBox(height: 12),
           SizedBox(
             height: 50,
             child: ElevatedButton(
-              onPressed: isLoading ? null : register,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColor.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: isLoading ? null : registerUser,
               child: isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("Daftar Sekarang !🌸"),
+                  : const Text("Sign up", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ),
         ],

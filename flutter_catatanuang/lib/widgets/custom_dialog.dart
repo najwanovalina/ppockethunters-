@@ -1,44 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_catatanuang/utils/app_color.dart';
+import '../utils/app_color.dart';
 
+// Kotak pop-up tanya "Yakin?" sebelum user hapus data atau keluar akun
 class CustomDialog {
-  static void showCuteConfirm({
+  static void showConfirmation({
     required BuildContext context,
     required String title,
     required String message,
-    required VoidCallback onConfirm,
+    required VoidCallback onConfirm, // Aksi yang dijalankan kalau user pencet "Ya"
   }) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: AppTheme.bgCream,
-        title: Text(
-          title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark),
-        ),
-        content: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: AppTheme.textDark),
-        ),
-        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text(message, style: const TextStyle(color: AppColor.secondarySoft)),
         actions: [
+          // Tombol Batal cuma nutup pop-up
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+            child: const Text("Batal", style: TextStyle(color: AppColor.secondarySoft)),
           ),
+          // Tombol Ya nutup pop-up dulu, baru jalanin perintah utamanya
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.pinkAccent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColor.primary),
             onPressed: () {
               Navigator.pop(ctx);
               onConfirm();
             },
-            child: const Text("Ya, Yakin!"),
+            child: const Text("Ya", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
